@@ -96,7 +96,16 @@ class AlignCollate(object):
 
 def recognizer_predict(model, converter, test_loader, batch_max_length,\
                        ignore_idx, char_group_idx, decoder = 'greedy', beamWidth= 5, device = 'cpu'):
-    model.eval()
+    import os
+    file_name = "eia_recognition_model"
+    if os.path.exists(os.path.join(module_dir_path, file_name)):
+        print("LOADING SAVED RECOGNITION MODEL(EIA)", os.path.join(module_dir_path, file_name))
+        model = torch.jit.load(os.path.join(module_dir_path, file_name))        
+    else:
+        model.eval()
+        model = torch.jit.script(model)
+        torch.jit.save(model, os.path.join(module_dir_path, file_name))
+        print("SCRIPTING RECOGNITION MODEL TO BE USED BY EIA at", os.path.join(module_dir_path, file_name))
     result = []
     with torch.no_grad():
         for image_tensors in test_loader:
@@ -106,7 +115,11 @@ def recognizer_predict(model, converter, test_loader, batch_max_length,\
             length_for_pred = torch.IntTensor([batch_max_length] * batch_size).to(device)
             text_for_pred = torch.LongTensor(batch_size, batch_max_length + 1).fill_(0).to(device)
 
-            preds = model(image, text_for_pred)
+            if hasattr(torch.jit, 'optimized_execution') and callable(torch.jit.optimized_execution):
+                with torch.jit.optimized_execution(True, {'target_device': 'eia:0'}):
+                    preds = model(image, text_for_pred)
+            else:
+                preds = model(image, text_for_pred)
 
             # Select max probabilty (greedy decoding) then decode index to character
             preds_size = torch.IntTensor([preds.size(1)] * batch_size)

@@ -285,7 +285,7 @@ class Reader(object):
             assert calculate_md5(model_path) == model_url[model_file][1], corrupt_msg
             LOGGER.info('Download complete')
         if detector:
-            self.detector = get_detector(detector_path, self.device)
+            self.detector = get_detector(detector_path, self.model_storage_directory, self.device)
         if recognizer:
             self.recognizer, self.converter = get_recognizer(input_channel, output_channel,\
                                                          hidden_size, self.character, separator_list,\
