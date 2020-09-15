@@ -172,7 +172,7 @@ def get_recognizer(input_channel, output_channel, hidden_size, character,\
 
     return model, converter
 
-def get_text(character, imgH, imgW, recognizer, converter, image_list, model_dir_path\
+def get_text(character, imgH, imgW, recognizer, converter, image_list, model_dir_path,\
              ignore_char = '',decoder = 'greedy', beamWidth =5, batch_size=1, contrast_ths=0.1,\
              adjust_contrast=0.5, filter_ths = 0.003, workers = 1, device = 'cpu'):
     batch_max_length = int(imgW/10)
