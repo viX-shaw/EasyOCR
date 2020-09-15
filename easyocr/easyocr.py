@@ -339,7 +339,7 @@ class Reader(object):
             ignore_char = ''.join(set(self.character)-set(self.lang_char))
 
         if self.model_lang in ['chinese_tra','chinese_sim', 'japanese', 'korean']: decoder = 'greedy'
-        result = get_text(self.character, imgH, int(max_width), self.recognizer, self.converter, image_list, self.model_storage_directory\
+        result = get_text(self.character, imgH, int(max_width), self.recognizer, self.converter, image_list, self.model_storage_directory,\
                       ignore_char, decoder, beamWidth, batch_size, contrast_ths, adjust_contrast, filter_ths,\
                       workers, self.device)
 
