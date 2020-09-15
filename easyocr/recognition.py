@@ -94,18 +94,18 @@ class AlignCollate(object):
         image_tensors = torch.cat([t.unsqueeze(0) for t in resized_images], 0)
         return image_tensors
 
-def recognizer_predict(model, converter, test_loader, batch_max_length,\
+def recognizer_predict(model, converter, model_dir_path, test_loader, batch_max_length,\
                        ignore_idx, char_group_idx, decoder = 'greedy', beamWidth= 5, device = 'cpu'):
     import os
     file_name = "eia_recognition_model"
-    if os.path.exists(os.path.join(module_dir_path, file_name)):
-        print("LOADING SAVED RECOGNITION MODEL(EIA)", os.path.join(module_dir_path, file_name))
-        model = torch.jit.load(os.path.join(module_dir_path, file_name))        
+    if os.path.exists(os.path.join(model_dir_path, file_name)):
+        print("LOADING SAVED RECOGNITION MODEL(EIA)", os.path.join(model_dir_path, file_name))
+        model = torch.jit.load(os.path.join(model_dir_path, file_name))        
     else:
         model.eval()
         model = torch.jit.script(model)
-        torch.jit.save(model, os.path.join(module_dir_path, file_name))
-        print("SCRIPTING RECOGNITION MODEL TO BE USED BY EIA at", os.path.join(module_dir_path, file_name))
+        torch.jit.save(model, os.path.join(model_dir_path, file_name))
+        print("SCRIPTING RECOGNITION MODEL TO BE USED BY EIA at", os.path.join(model_dir_path, file_name))
     result = []
     with torch.no_grad():
         for image_tensors in test_loader:
@@ -172,7 +172,7 @@ def get_recognizer(input_channel, output_channel, hidden_size, character,\
 
     return model, converter
 
-def get_text(character, imgH, imgW, recognizer, converter, image_list,\
+def get_text(character, imgH, imgW, recognizer, converter, image_list, model_dir_path\
              ignore_char = '',decoder = 'greedy', beamWidth =5, batch_size=1, contrast_ths=0.1,\
              adjust_contrast=0.5, filter_ths = 0.003, workers = 1, device = 'cpu'):
     batch_max_length = int(imgW/10)
@@ -192,7 +192,7 @@ def get_text(character, imgH, imgW, recognizer, converter, image_list,\
         num_workers=int(workers), collate_fn=AlignCollate_normal, pin_memory=True)
 
     # predict first round
-    result1 = recognizer_predict(recognizer, converter, test_loader,batch_max_length,\
+    result1 = recognizer_predict(recognizer, converter, model_dir_path, test_loader,batch_max_length,\
                                  ignore_idx, char_group_idx, decoder, beamWidth, device = device)
 
     # predict second round
@@ -204,7 +204,7 @@ def get_text(character, imgH, imgW, recognizer, converter, image_list,\
         test_loader = torch.utils.data.DataLoader(
                         test_data, batch_size=batch_size, shuffle=False,
                         num_workers=int(workers), collate_fn=AlignCollate_contrast, pin_memory=True)
-        result2 = recognizer_predict(recognizer, converter, test_loader, batch_max_length,\
+        result2 = recognizer_predict(recognizer, converter, model_dir_path, test_loader, batch_max_length,\
                                      ignore_idx, char_group_idx, decoder, beamWidth, device = device)
 
     result = []

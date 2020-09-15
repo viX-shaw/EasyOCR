@@ -56,12 +56,12 @@ def test_net(canvas_size, mag_ratio, net, image, text_threshold, link_threshold,
 
     return boxes, polys
 
-def get_detector(trained_model, module_dir_path, device='cpu'):
+def get_detector(trained_model, model_dir_path, device='cpu'):
     import os
     file_name = "eia_craft_model.pt"
-    if os.path.exists(os.path.join(module_dir_path, file_name)):
-        print("LOADING SAVED DETECTION MODEL(EIA)", os.path.join(module_dir_path, file_name))
-        net = torch.jit.load(os.path.join(module_dir_path, file_name))        
+    if os.path.exists(os.path.join(model_dir_path, file_name)):
+        print("LOADING SAVED DETECTION MODEL(EIA)", os.path.join(model_dir_path, file_name))
+        net = torch.jit.load(os.path.join(model_dir_path, file_name))        
     else:
         net = CRAFT()
 
@@ -73,8 +73,8 @@ def get_detector(trained_model, module_dir_path, device='cpu'):
             cudnn.benchmark = False
         net.eval()
         net = torch.jit.script(net)
-        torch.jit.save(net, os.path.join(module_dir_path, file_name))
-        print("SCRIPTING RECOGNITION MODEL TO BE USED BY EIA at", os.path.join(module_dir_path, file_name))
+        torch.jit.save(net, os.path.join(model_dir_path, file_name))
+        print("SCRIPTING RECOGNITION MODEL TO BE USED BY EIA at", os.path.join(model_dir_path, file_name))
     return net
 
 def get_textbox(detector, image, canvas_size, mag_ratio, text_threshold, link_threshold, low_text, poly, device):
